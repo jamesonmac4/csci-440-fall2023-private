@@ -16,7 +16,7 @@ public class Homework2 extends DBTest {
      */
     public void createTracksPlusView(){
         //TODO fill this in
-        executeDDL("CREATE VIEW tracksPlus");
+        executeDDL("CREATE VIEW tracksPlus AS SELECT tracks.*, albums.Title as AlbumTitle, artists.Name as ArtistName, genres.Name as GenreName FROM tracks JOIN genres ON tracks.GenreId = genres.GenreId JOIN albums ON tracks.AlbumId = albums.AlbumId JOIN artists ON albums.ArtistId = artists.ArtistId;");
 
         List<Map<String, Object>> results = executeSQL("SELECT * FROM tracksPlus ORDER BY TrackId");
         assertEquals(3503, results.size());
@@ -36,8 +36,20 @@ public class Homework2 extends DBTest {
      */
     public void createGrammyInfoTable(){
         //TODO fill these in
-        executeDDL("create table grammy_categories");
-        executeDDL("create table grammy_infos");
+        executeDDL("CREATE TABLE grammy_categories (\n" +
+                "    GrammyCategoryId INTEGER PRIMARY KEY,\n" +
+                "    Name TEXT\n" +
+                ");");
+        executeDDL("CREATE TABLE grammy_infos (\n" +
+                "    InfoId INTEGER PRIMARY KEY,\n" +
+                "    ArtistId INTEGER,\n" +
+                "    AlbumId INTEGER,\n" +
+                "    TrackId INTEGER,\n" +
+                "    GrammyCategoryId INTEGER,\n" +
+                "    Status TEXT,\n" +
+                "    FOREIGN KEY (ArtistId) REFERENCES Artists (ArtistId),\n" +
+                "    FOREIGN KEY (GrammyCategoryId) REFERENCES grammy_categories (GrammyCategoryId)\n" +
+                ");");
 
         // TEST CODE
         executeUpdate("INSERT INTO grammy_categories(Name) VALUES ('Greatest Ever');");
