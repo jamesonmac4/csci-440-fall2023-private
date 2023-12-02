@@ -2,6 +2,7 @@ package edu.montana.csci.csci440.helpers;
 
 import edu.montana.csci.csci440.model.Employee;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,15 @@ public class EmployeeHelper {
         Employee employee = Employee.find(1); // root employee
         // and use this data structure to maintain reference information needed to build the tree structure
         Map<Long, List<Employee>> employeeMap = new HashMap<>();
+        List<Employee> all = Employee.all();
+        for (Employee emp : all) {
+            List<Employee> employees = employeeMap.get(emp.getReportsTo());
+            if (employees == null) {
+                employees = new ArrayList<>();
+                employeeMap.put(emp.getEmployeeId(), employees);
+            }
+            employees.add(emp);
+        }
         return "<ul>" + makeTree(employee, employeeMap) + "</ul>";
     }
 

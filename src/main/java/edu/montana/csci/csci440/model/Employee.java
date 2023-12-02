@@ -4,11 +4,12 @@ import edu.montana.csci.csci440.util.DB;
 
 import java.math.BigDecimal;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Employee extends Model {
+public class Employee extends Model{
 
     private Long employeeId;
     private Long reportsTo;
@@ -31,8 +32,21 @@ public class Employee extends Model {
     }
 
     public static List<Employee.SalesSummary> getSalesSummaries() {
+        try {
+            try (Connection connect = DB.connect();
+                 PreparedStatement stmt = connect.prepareStatement(
+                         "SELECT * FROM employees")) {
+                ArrayList<Employee.SalesSummary> result = new ArrayList<>();
+                ResultSet resultSet = stmt.executeQuery();
+                while (resultSet.next()) {
+                    result.add(new Employee.SalesSummary(resultSet));
+                }
+                return result;
+            }
+        } catch (SQLException sqlException) {
+            throw new RuntimeException(sqlException);
+        }
         //TODO - a GROUP BY query to determine the sales (look at the invoices table), using the SalesSummary class
-        return Collections.emptyList();
     }
 
     @Override
@@ -41,9 +55,14 @@ public class Employee extends Model {
         if (firstName == null || "".equals(firstName)) {
             addError("FirstName can't be null or blank!");
         }
-        // TODO - add in additional validations:
-        //   last name can't be null or blank
-        //   email can't be null or blank and must contain an @
+        if (lastName == null || "".equals(lastName)) {
+            addError("FirstName can't be null or blank!");
+        }
+        if (email == null || "".equals(email)) {
+            addError("Email can't be null or blank!");
+        } else if (!email.contains("@")) {
+            addError("Email doesn't have an @ sign");
+        }
         return !hasErrors();
     }
 
@@ -86,7 +105,6 @@ public class Employee extends Model {
             return false;
         }
     }
-
     @Override
     public void delete() {
     }
@@ -127,26 +145,97 @@ public class Employee extends Model {
     }
 
     public List<Employee> getReports() {
-        return Collections.emptyList();
+            try (Connection connect = DB.connect();
+                 PreparedStatement stmt = connect.prepareStatement(
+                         "SELECT * FROM employees WHERE ReportsTo = ?")) {
+                ArrayList<Employee> result = new ArrayList<>();
+                stmt.setLong(1, getEmployeeId());
+                ResultSet resultSet = stmt.executeQuery();
+                while (resultSet.next()) {
+                    result.add(new Employee(resultSet));
+                }
+                return result;
+            } catch (SQLException sqlException) {
+                throw new RuntimeException(sqlException);
+            }
     }
     public Employee getBoss() {
+
         return null;
     }
 
     public static List<Employee> all() {
-        return all(0, Integer.MAX_VALUE);
+        try {
+            try (Connection connect = DB.connect();
+                 PreparedStatement stmt = connect.prepareStatement(
+                         "SELECT * FROM employees")) {
+                ArrayList<Employee> result = new ArrayList<>();
+                ResultSet resultSet = stmt.executeQuery();
+                while (resultSet.next()) {
+                    result.add(new Employee(resultSet));
+                }
+                return result;
+            }
+        } catch (SQLException sqlException) {
+            throw new RuntimeException(sqlException);
+        }
     }
 
     public static List<Employee> all(int page, int count) {
-        return Collections.emptyList();
+        try {
+            try (Connection connect = DB.connect();
+                 PreparedStatement stmt = connect.prepareStatement(
+                         "SELECT * FROM employees LIMIT ? OFFSET ?")) {
+                ArrayList<Employee> result = new ArrayList<>();
+                stmt.setInt(1, count);
+                stmt.setInt(2, (page-1)*count);
+                ResultSet resultSet = stmt.executeQuery();
+                while (resultSet.next()) {
+                    result.add(new Employee(resultSet));
+                }
+                return result;
+            }
+        } catch (SQLException sqlException) {
+            throw new RuntimeException(sqlException);
+        }
     }
 
     public static Employee findByEmail(String newEmailAddress) {
-        throw new UnsupportedOperationException("Implement me");
+        try {
+            try (Connection connect = DB.connect();
+                 PreparedStatement stmt = connect.prepareStatement(
+                         "SELECT * FROM employees WHERE Email = ?")) {
+                stmt.setString(1, newEmailAddress);
+                ResultSet resultSet = stmt.executeQuery();
+                if (resultSet.next()) {
+                    return new Employee(resultSet);
+                }
+                else {
+                    return null;
+                }
+            }
+        } catch (SQLException sqlException) {
+            throw new RuntimeException(sqlException);
+        }
     }
 
     public static Employee find(long employeeId) {
-        return new Employee();
+        try {
+            try (Connection connect = DB.connect();
+                 PreparedStatement stmt = connect.prepareStatement(
+                         "SELECT * FROM employees WHERE EmployeeId = ?")) {
+                stmt.setLong(1, employeeId);
+                ResultSet resultSet = stmt.executeQuery();
+                if (resultSet.next()) {
+                    return new Employee(resultSet);
+                }
+                else {
+                    return null;
+                }
+            }
+        } catch (SQLException sqlException) {
+            throw new RuntimeException(sqlException);
+        }
     }
 
     public void setTitle(String programmer) {
@@ -154,7 +243,7 @@ public class Employee extends Model {
     }
 
     public void setReportsTo(Employee employee) {
-        // TODO implement
+
     }
 
     public static class SalesSummary {
@@ -192,3 +281,4 @@ public class Employee extends Model {
         }
     }
 }
+

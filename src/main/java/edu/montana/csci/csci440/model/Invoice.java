@@ -4,10 +4,8 @@ import edu.montana.csci.csci440.util.DB;
 
 import java.math.BigDecimal;
 import java.sql.*;
-import java.util.Collections;
+import java.util.*;
 import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
 
 public class Invoice extends Model {
 
@@ -30,6 +28,7 @@ public class Invoice extends Model {
         billingPostalCode = results.getString("BillingPostalCode");
         total = results.getBigDecimal("Total");
         invoiceId = results.getLong("InvoiceId");
+        billingCity = results.getString("BillingCity");
     }
 
     public List<InvoiceItem> getInvoiceItems(){
@@ -93,14 +92,57 @@ public class Invoice extends Model {
     }
 
     public static List<Invoice> all() {
-        return all(0, Integer.MAX_VALUE);
+        try {
+            try (Connection connect = DB.connect();
+                 PreparedStatement stmt = connect.prepareStatement(
+                         "SELECT * FROM invoices")) {
+                ArrayList<Invoice> result = new ArrayList<>();
+                ResultSet resultSet = stmt.executeQuery();
+                while (resultSet.next()) {
+                    result.add(new Invoice(resultSet));
+                }
+                return result;
+            }
+        } catch (SQLException sqlException) {
+            throw new RuntimeException(sqlException);
+        }
     }
 
     public static List<Invoice> all(int page, int count) {
-        return Collections.emptyList();
+        try {
+            try (Connection connect = DB.connect();
+                 PreparedStatement stmt = connect.prepareStatement(
+                         "SELECT * FROM invoices LIMIT ? OFFSET ?")) {
+                ArrayList<Invoice> result = new ArrayList<>();
+                stmt.setInt(1, count);
+                stmt.setInt(2, (page-1)*count);
+                ResultSet resultSet = stmt.executeQuery();
+                while (resultSet.next()) {
+                    result.add(new Invoice(resultSet));
+                }
+                return result;
+            }
+        } catch (SQLException sqlException) {
+            throw new RuntimeException(sqlException);
+        }
     }
 
     public static Invoice find(long invoiceId) {
-        return new Invoice();
+        try {
+            try (Connection connect = DB.connect();
+                 PreparedStatement stmt = connect.prepareStatement(
+                         "SELECT * FROM invoices WHERE InvoiceId = ?")) {
+                stmt.setLong(1, invoiceId);
+                ResultSet resultSet = stmt.executeQuery();
+                if (resultSet.next()) {
+                    return new Invoice(resultSet);
+                }
+                else {
+                    return null;
+                }
+            }
+        } catch (SQLException sqlException) {
+            throw new RuntimeException(sqlException);
+        }
     }
 }

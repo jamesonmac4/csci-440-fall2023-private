@@ -11,8 +11,7 @@ public class Model {
 
     List<String> _errors = new LinkedList<>();
 
-    public boolean create() {
-        throw new UnsupportedOperationException("Needs to be implemented");
+    public boolean create() {throw new UnsupportedOperationException("Needs to be implemented");
     }
 
     public boolean update() {

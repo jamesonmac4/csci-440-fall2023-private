@@ -105,7 +105,7 @@ public class TrackTest extends DBTest {
     @Test
     void testTrackListsWorks() {
         Track track = Track.find(1);
-        assertEquals(3, track.getPlaylists().size());
+        assertEquals(3, track.getPlaylists( 1L).size());
     }
 
     @Test
@@ -127,7 +127,6 @@ public class TrackTest extends DBTest {
         // cache should have been invalidated
         count = Track.count();
         assertEquals(initialCount + 4, DB.getConnectionCount());
-
     }
 
     @Test
